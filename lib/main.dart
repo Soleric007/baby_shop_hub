@@ -34,8 +34,15 @@ class BabyShopHubApp extends StatelessWidget {
         '/home': (context) => const BottomNavScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/products': (context) => const ProductListScreen(),
-      },
+
+        // Keep this only if needed
+        '/products': (context) => ProductListScreen(
+          onAddToCart: (product) {
+            debugPrint('Added ${product.name}');
+          },
+        ),
+},
+
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/product.dart';
 import '../screens/product/product_list_screen.dart';
 import '../screens/cart/cart_screen.dart';
 import '../screens/profile/profile_screen.dart';
@@ -13,11 +14,46 @@ class BottomNavScreen extends StatefulWidget {
 class _BottomNavScreenState extends State<BottomNavScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = const [
-    ProductListScreen(),
-    CartScreen(),
-    ProfileScreen(),
-  ];
+  // 🧺 Cart items state
+  final List<Product> _cartItems = [];
+
+  // ➕ Add product to cart
+  void _addToCart(Product product) {
+    setState(() {
+      _cartItems.add(product);
+    });
+
+    // Optional: feedback
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${product.name} added to cart 🍼'),
+        duration: const Duration(seconds: 1),
+        backgroundColor: Colors.pinkAccent,
+      ),
+    );
+  }
+
+  // ✅ Checkout: clear cart
+  void _handleCheckout(List<Product> items) {
+    setState(() {
+      _cartItems.clear();
+    });
+
+    // Confirmation
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Order placed successfully 💖'),
+        backgroundColor: Colors.pink,
+      ),
+    );
+  }
+
+  // 👶 Screens with dynamic cart state
+  List<Widget> get _screens => [
+        ProductListScreen(onAddToCart: _addToCart),
+        CartScreen(cartItems: _cartItems, onCheckout: _handleCheckout),
+        const ProfileScreen(),
+      ];
 
   void _onTabTapped(int index) {
     setState(() {

@@ -4,7 +4,12 @@ import '../../models/product.dart';
 import 'product_details_screen.dart';
 
 class ProductListScreen extends StatelessWidget {
-  const ProductListScreen({super.key});
+  final Function(Product) onAddToCart; // 👈 Accept from BottomNav
+
+  const ProductListScreen({
+    super.key,
+    required this.onAddToCart,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +31,7 @@ class ProductListScreen extends StatelessWidget {
                 itemCount: mockProducts.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.6, // smaller card size
+                  childAspectRatio: 0.6,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
                 ),
@@ -105,7 +110,16 @@ class ProductListScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  onAddToCart(product); // 👶 Add to cart!
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text("Added to cart 💕"),
+                      backgroundColor: Colors.pinkAccent,
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.shopping_cart_outlined, size: 16),
                 label: const Text("Add"),
                 style: ElevatedButton.styleFrom(
