@@ -4,9 +4,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'edit_profile_screen.dart';
 import 'order_history_screen.dart';
 import 'edit_payment_screen.dart';
+import '../../models/product.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final List<Map<dynamic, dynamic>> orders; // ✅ Accept orders
+
+  const ProfileScreen({super.key, this.orders = const []}); // ✅ Default empty
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -104,25 +107,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 15),
 
                   ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const OrderHistoryScreen(),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) {
+                              final convertedOrders = widget.orders.map<Map<Product, int>>((orderMap) {
+                                return orderMap.map((key, value) => MapEntry(
+                                  Product.fromMap(Map<String, dynamic>.from(key)),
+                                  value as int,
+                                ));
+                              }).toList();
+
+                              return const OrderHistoryScreen();
+
+                            },
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.shopping_bag_rounded),
+                      label: const Text('My Orders 🛍️'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurpleAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
                         ),
-                      );
-                    },
-                    icon: const Icon(Icons.shopping_bag_rounded),
-                    label: const Text('My Orders 🛍️'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurpleAccent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
                       ),
                     ),
-                  ),
+
 
                   const SizedBox(height: 15),
 

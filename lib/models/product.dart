@@ -3,8 +3,8 @@ class Product {
   final String name;
   final String imageUrl;
   final double price;
-  final String description; // ✅ Add this line
-  final String category; // ✅ Add this line
+  final String description;
+  final String category;
 
   Product({
     required this.id,
@@ -12,6 +12,29 @@ class Product {
     required this.imageUrl,
     required this.price,
     required this.description,
-    required this.category // ✅ Also add here
+    required this.category,
   });
+
+  factory Product.fromMap(Map<String, dynamic> map) {
+  return Product(
+    id: map['id'],
+    name: map['name'],
+    imageUrl: map['imageUrl'],
+    price: (map['price'] as num).toDouble(), // ✅ convert safely to double
+    description: map['description'],
+    category: map['category'],
+  );
+}
+
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'imageUrl': imageUrl,
+      'price': price,
+      'description': description,
+      'category': category,
+    };
+  }
 }

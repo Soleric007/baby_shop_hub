@@ -15,6 +15,7 @@ class BottomNavScreen extends StatefulWidget {
 class _BottomNavScreenState extends State<BottomNavScreen> {
   int _selectedIndex = 0;
   Map<Product, int> cartItems = {};
+  List<Map<Product, int>> _orders = [];
 
   void _onTabTapped(int index) {
     setState(() {
@@ -33,6 +34,10 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   }
 
   void _clearCart() {
+    if (cartItems.isNotEmpty) {
+      // Save current cart as an order before clearing
+      _orders.add(Map<Product, int>.from(cartItems));
+    }
     setState(() {
       cartItems.clear();
     });
@@ -53,7 +58,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
         onCheckout: _clearCart,
         onRemoveItem: _removeFromCart,
       ),
-      const ProfileScreen(),
+      ProfileScreen(orders: _orders), // updated
     ];
 
     return Scaffold(

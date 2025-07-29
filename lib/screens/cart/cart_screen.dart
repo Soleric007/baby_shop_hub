@@ -1,6 +1,6 @@
-// lib/screens/cart/cart_screen.dart
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
+import '../cart/checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
   final Map<Product, int> cartItems;
@@ -38,7 +38,7 @@ class CartScreen extends StatelessWidget {
                   child: ListTile(
                     leading: Image.network(product.imageUrl, width: 50),
                     title: Text(product.name),
-                    subtitle: Text("Qty: $quantity\n\$${product.price}"),
+                    subtitle: Text("Qty: $quantity\n₦${product.price}"),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
@@ -46,7 +46,8 @@ class CartScreen extends StatelessWidget {
                           context: context,
                           builder: (_) => AlertDialog(
                             title: const Text("Remove from cart?"),
-                            content: Text("Are you sure you want to remove ${product.name}?"),
+                            content: Text(
+                                "Are you sure you want to remove ${product.name}?"),
                             actions: [
                               TextButton(
                                 child: const Text("Cancel"),
@@ -72,18 +73,35 @@ class CartScreen extends StatelessWidget {
           ? null
           : Padding(
               padding: const EdgeInsets.all(12),
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.shopping_bag_rounded, size: 20),
                 onPressed: () {
-                  onCheckout();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Order placed! 🍼")),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CheckoutPage(
+                        cartItems: cartItems,
+                        onPlaceOrder: () {
+                          // Save to orders, clear cart, navigate back or to orders screen
+                        },
+                      ),
+                    ),
                   );
+
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
+                  backgroundColor: Colors.pink[300],
+                  foregroundColor: Colors.white,
+                  elevation: 4,
                   padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-                child: const Text("Proceed to checkout", style: TextStyle(fontSize: 16)),
+                label: const Text(
+                  "Proceed to Checkout",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
               ),
             ),
     );
