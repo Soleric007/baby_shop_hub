@@ -1,136 +1,90 @@
+// lib/screens/cart/cart_screen.dart
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
-import '../cart/checkout_screen.dart';
 
-class CartScreen extends StatefulWidget {
-  final List<Product> cartItems;
-  final Function(List<Product>) onCheckout;
+class CartScreen extends StatelessWidget {
+  final Map<Product, int> cartItems;
+  final VoidCallback onCheckout;
+  final Function(Product) onRemoveItem;
 
   const CartScreen({
     super.key,
     required this.cartItems,
     required this.onCheckout,
+    required this.onRemoveItem,
   });
 
   @override
-  State<CartScreen> createState() => _CartScreenState();
-}
-
-class _CartScreenState extends State<CartScreen> {
-  late List<Product> _cartItems;
-
-  @override
-  void initState() {
-    super.initState();
-    _cartItems = List.from(widget.cartItems);
-  }
-
-  void _handleCheckout() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CheckoutScreen(
-          cartItems: _cartItems,
-          onPlaceOrder: () {
-            Navigator.pop(context, true);
-          },
-        ),
-      ),
-    );
-
-    // If checkout was successful, clear the cart
-    if (result == true) {
-      setState(() {
-        _cartItems.clear();
-      });
-      widget.onCheckout(_cartItems); // Inform parent to update cart
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    double total = _cartItems.fold(0.0, (sum, item) => sum + item.price);
-
     return Scaffold(
       backgroundColor: Colors.pink[50],
       appBar: AppBar(
-        title: const Text('🛒 My Cart'),
+        title: const Text('Your Cart 🛒'),
+        centerTitle: true,
         backgroundColor: Colors.pink[100],
       ),
-      body: _cartItems.isEmpty
+      body: cartItems.isEmpty
           ? const Center(
-              child: Text(
-                "🍼 Your cart is empty, little one!",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.pink,
-                ),
-              ),
+              child: Text("Cart is empty 💔",
+                  style: TextStyle(fontSize: 18, color: Colors.grey)),
             )
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _cartItems.length,
-                    itemBuilder: (context, index) {
-                      final product = _cartItems[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        color: Colors.pink[100],
-                        child: ListTile(
-                          leading: CircleAvatar(
-                            backgroundImage: NetworkImage(product.imageUrl),
+          : ListView(
+              padding: const EdgeInsets.all(12),
+              children: cartItems.entries.map((entry) {
+                final product = entry.key;
+                final quantity = entry.value;
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: ListTile(
+                    leading: Image.network(product.imageUrl, width: 50),
+                    title: Text(product.name),
+                    subtitle: Text("Qty: $quantity\n\$${product.price}"),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text("Remove from cart?"),
+                            content: Text("Are you sure you want to remove ${product.name}?"),
+                            actions: [
+                              TextButton(
+                                child: const Text("Cancel"),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                              TextButton(
+                                child: const Text("Remove"),
+                                onPressed: () {
+                                  onRemoveItem(product);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ],
                           ),
-                          title: Text(product.name),
-                          subtitle:
-                              Text("\$${product.price.toStringAsFixed(2)}"),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              setState(() {
-                                _cartItems.removeAt(index);
-                              });
-                            },
-                          ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
+                );
+              }).toList(),
+            ),
+      bottomNavigationBar: cartItems.isEmpty
+          ? null
+          : Padding(
+              padding: const EdgeInsets.all(12),
+              child: ElevatedButton(
+                onPressed: () {
+                  onCheckout();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Order placed! 🍼")),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pinkAccent,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        "Total: \$${total.toStringAsFixed(2)}",
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.purple,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      ElevatedButton.icon(
-                        onPressed: _handleCheckout,
-                        icon: const Icon(Icons.shopping_bag),
-                        label: const Text("Proceed to Checkout"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.pinkAccent,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          textStyle: const TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                child: const Text("Proceed to checkout", style: TextStyle(fontSize: 16)),
+              ),
             ),
     );
   }

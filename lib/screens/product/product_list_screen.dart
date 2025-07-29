@@ -1,15 +1,13 @@
+// lib/screens/product/product_list_screen.dart
 import 'package:flutter/material.dart';
-import '../../data/mock_products.dart';
 import '../../models/product.dart';
-import 'product_details_screen.dart';
+import '../../data/mock_products.dart';
+import '../product/product_details_screen.dart';
 
 class ProductListScreen extends StatelessWidget {
-  final Function(Product) onAddToCart; // 👈 Accept from BottomNav
+  final Function(Product) onAddToCart;
 
-  const ProductListScreen({
-    super.key,
-    required this.onAddToCart,
-  });
+  const ProductListScreen({super.key, required this.onAddToCart});
 
   @override
   Widget build(BuildContext context) {
@@ -111,12 +109,12 @@ class ProductListScreen extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child: ElevatedButton.icon(
                 onPressed: () {
-                  onAddToCart(product); // 👶 Add to cart!
+                  onAddToCart(product);
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text("Added to cart 💕"),
-                      backgroundColor: Colors.pinkAccent,
-                      duration: const Duration(seconds: 1),
+                      content: Text("${product.name} added to cart 🎀"),
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                 },
