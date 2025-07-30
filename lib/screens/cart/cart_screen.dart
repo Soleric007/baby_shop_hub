@@ -1,3 +1,4 @@
+// lib/screens/cart/cart_screen.dart
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
 import '../cart/checkout_screen.dart';
@@ -82,12 +83,19 @@ class CartScreen extends StatelessWidget {
                       builder: (_) => CheckoutPage(
                         cartItems: cartItems,
                         onPlaceOrder: () {
-                          // Save to orders, clear cart, navigate back or to orders screen
+                          // This callback will clear the cart
+                          onCheckout();
+                          // Show success message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Order placed successfully! 🎉'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
                         },
                       ),
                     ),
                   );
-
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.pink[300],
