@@ -4,12 +4,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'edit_profile_screen.dart';
 import 'order_history_screen.dart';
 import 'edit_payment_screen.dart';
-import '../../models/product.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final List<Map<dynamic, dynamic>> orders; // ✅ Accept orders
+  final List<Map<dynamic, dynamic>> orders;
 
-  const ProfileScreen({super.key, this.orders = const []}); // ✅ Default empty
+  const ProfileScreen({super.key, this.orders = const []});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -17,20 +16,120 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? user;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    loadUser();
+    _loadUser();
   }
 
-  Future<void> loadUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    final storedUser = prefs.getString('loggedInUser');
-    if (storedUser != null) {
+  Future<void> _loadUser() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final storedUser = prefs.getString('loggedInUser');
+      if (storedUser != null) {
+        setState(() {
+          user = jsonDecode(storedUser);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading user: $e');
+    } finally {
       setState(() {
-        user = jsonDecode(storedUser);
+        isLoading = false;
       });
+    }
+  }
+
+  Future<void> _logout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.logout_rounded, color: Colors.redAccent),
+              SizedBox(width: 8),
+              Text('Logout'),
+            ],
+          ),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout == true) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('loggedInUser');
+        await prefs.clear(); // Clear all stored data if needed
+        
+        if (mounted) {
+          // Navigate back to login screen and clear navigation stack
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/login', // Replace with your login route
+            (Route<dynamic> route) => false,
+          );
+          
+          // Show logout success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Successfully logged out! 👋'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('Error during logout: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Error logging out. Please try again.'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _navigateToOrders() async {
+    try {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const OrderHistoryScreen(),
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error navigating to orders: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error loading orders. Please try again.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
     }
   }
 
@@ -46,134 +145,204 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         foregroundColor: Colors.white,
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: _logout,
+            icon: const Icon(Icons.logout_rounded),
+            tooltip: 'Logout',
+          ),
+        ],
       ),
-      body: user == null
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+      body: isLoading
+          ? const Center(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Center(
-                    child: CircleAvatar(
-                      radius: 55,
-                      backgroundColor: Colors.pink[100],
-                      child: const Icon(Icons.person, size: 60, color: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(height: 25),
-
-                  const Text(
-                    '👩‍🍼 Personal Info',
+                  CircularProgressIndicator(color: Colors.pinkAccent),
+                  SizedBox(height: 16),
+                  Text(
+                    'Loading profile...',
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF444466),
+                      color: Colors.grey,
+                      fontFamily: 'Poppins',
                     ),
                   ),
-                  const SizedBox(height: 10),
-
-                  profileTile('👶 Name', user?['name'] ?? 'Not set'),
-                  profileTile('📧 Email', user?['email'] ?? 'Not set'),
-                  profileTile('🏠 Address', user?['address'] ?? 'Not set'),
-                  profileTile('💳 Payment', user?['payment'] ?? 'Not set'),
-
-                  const SizedBox(height: 30),
-
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => EditProfileScreen(userData: user!),
-                        ),
-                      );
-                      if (result == true) {
-                        loadUser(); // Refresh on return
-                      }
-                    },
-                    icon: const Icon(Icons.edit_rounded),
-                    label: const Text('Edit Profile ✏️'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.pinkAccent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) {
-                              final convertedOrders = widget.orders.map<Map<Product, int>>((orderMap) {
-                                return orderMap.map((key, value) => MapEntry(
-                                  Product.fromMap(Map<String, dynamic>.from(key)),
-                                  value as int,
-                                ));
-                              }).toList();
-
-                              return const OrderHistoryScreen();
-
-                            },
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.shopping_bag_rounded),
-                      label: const Text('My Orders 🛍️'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurpleAccent,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
-                    ),
-
-
-                  const SizedBox(height: 15),
-
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const EditPaymentScreen(),
-                        ),
-                      ).then((value) {
-                        if (value == true) loadUser(); // Refresh after payment edit
-                      });
-                    },
-                    icon: const Icon(Icons.credit_card),
-                    label: const Text('Edit Payment Method 💳'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 30),
                 ],
               ),
-            ),
+            )
+          : user == null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No user data found',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontFamily: 'Poppins',
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadUser,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadUser,
+                  color: Colors.pinkAccent,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Profile Avatar
+                        Center(
+                          child: Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 55,
+                                backgroundColor: Colors.pink[100],
+                                child: Text(
+                                  user?['name']?.toString().substring(0, 1).toUpperCase() ?? '?',
+                                  style: const TextStyle(
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.green,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Welcome Text
+                        Center(
+                          child: Text(
+                            'Welcome, ${user?['name'] ?? 'User'}! 👋',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF444466),
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 25),
+
+                        // Personal Info Section
+                        const Text(
+                          '👩‍🍼 Personal Info',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF444466),
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+
+                        _buildProfileTile('👶 Name', user?['name'] ?? 'Not set'),
+                        _buildProfileTile('📧 Email', user?['email'] ?? 'Not set'),
+                        _buildProfileTile('🏠 Address', user?['address'] ?? 'Not set'),
+                        _buildProfileTile('💳 Payment', user?['payment'] ?? 'Not set'),
+
+                        const SizedBox(height: 30),
+
+                        // Action Buttons
+                        _buildActionButton(
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => EditProfileScreen(userData: user!),
+                              ),
+                            );
+                            if (result == true) {
+                              _loadUser();
+                            }
+                          },
+                          icon: Icons.edit_rounded,
+                          label: 'Edit Profile ✏️',
+                          color: Colors.pinkAccent,
+                        ),
+
+                        const SizedBox(height: 15),
+
+                        _buildActionButton(
+                          onPressed: _navigateToOrders,
+                          icon: Icons.shopping_bag_rounded,
+                          label: 'My Orders 🛍️',
+                          color: Colors.deepPurpleAccent,
+                        ),
+
+                        const SizedBox(height: 15),
+
+                        _buildActionButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const EditPaymentScreen(),
+                              ),
+                            ).then((value) {
+                              if (value == true) _loadUser();
+                            });
+                          },
+                          icon: Icons.credit_card,
+                          label: 'Edit Payment Method 💳',
+                          color: Colors.teal,
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        // Logout Button
+                        _buildActionButton(
+                          onPressed: _logout,
+                          icon: Icons.logout_rounded,
+                          label: 'Logout 👋',
+                          color: Colors.redAccent,
+                          isDestructive: true,
+                        ),
+
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
     );
   }
 
-  Widget profileTile(String label, String value) {
+  Widget _buildProfileTile(String label, String value) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -181,18 +350,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
         boxShadow: [
           BoxShadow(
             color: Colors.pink.shade50,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Text(
-        '$label: $value',
-        style: const TextStyle(
-          fontSize: 16,
-          fontFamily: 'Poppins',
-          color: Color(0xFF555577),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 16,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF555577),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontFamily: 'Poppins',
+                color: value == 'Not set' ? Colors.grey : const Color(0xFF333355),
+                fontWeight: value == 'Not set' ? FontWeight.normal : FontWeight.w500,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required VoidCallback onPressed,
+    required IconData icon,
+    required String label,
+    required Color color,
+    bool isDestructive = false,
+  }) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon),
+      label: Text(label),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
         ),
+        elevation: isDestructive ? 2 : 4,
+        shadowColor: color.withOpacity(0.3),
       ),
     );
   }
