@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import '/data/user_storage.dart';
 import '../bottom_nav_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -34,38 +33,38 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final email = emailController.text.trim().toLowerCase();
+      final email = emailController.text.trim();
       final password = passwordController.text.trim();
 
-      final prefs = await SharedPreferences.getInstance();
-      final storedUsers = prefs.getString('users');
+      // Use UserStorage to validate login
+      final user = await UserStorage.validateLogin(email, password);
 
-      if (storedUsers != null) {
-        final List users = jsonDecode(storedUsers);
-        final user = users.firstWhere(
-          (u) => u['email'].toString().toLowerCase() == email && u['password'] == password,
-          orElse: () => null,
-        );
-
-        if (user != null) {
-          // Store the complete user data
-          await prefs.setString('loggedInUser', jsonEncode(user));
-          
-          if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const BottomNavScreen()),
-            );
-          }
+      if (user != null) {
+        // Set logged in user using UserStorage
+        final success = await UserStorage.setLoggedInUser(user);
+        
+        if (success && mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const BottomNavScreen()),
+          );
+        } else {
+          setState(() {
+            errorMessage = 'Login failed. Please try again.';
+          });
+        }
+      } else {
+        // Check if any users exist
+        final users = await UserStorage.loadUsers();
+        if (users.isEmpty) {
+          setState(() {
+            errorMessage = 'No users found. Please register first 👶';
+          });
         } else {
           setState(() {
             errorMessage = 'Invalid email or password';
           });
         }
-      } else {
-        setState(() {
-          errorMessage = 'No users found. Please register first 👶';
-        });
       }
     } catch (e) {
       setState(() {
@@ -131,19 +130,8 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Logo/Icon
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.pinkAccent.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.child_care,
-                  size: 80,
-                  color: Colors.pinkAccent,
-                ),
-              ),
+              // Your original baby icon
+              Image.asset('assets/images/baby_icon.png', height: 120),
               const SizedBox(height: 20),
               
               const Text(

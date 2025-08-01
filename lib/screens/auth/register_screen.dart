@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import '/data/user_storage.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -49,42 +48,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       final name = nameController.text.trim();
-      final email = emailController.text.trim().toLowerCase();
+      final email = emailController.text.trim();
       final phone = phoneController.text.trim();
       final address = addressController.text.trim();
       final password = passwordController.text.trim();
 
-      final prefs = await SharedPreferences.getInstance();
-      final storedUsers = prefs.getString('users');
-      List<Map<String, dynamic>> users = [];
-
-      if (storedUsers != null) {
-        final List<dynamic> decodedUsers = jsonDecode(storedUsers);
-        users = decodedUsers.map((user) => Map<String, dynamic>.from(user)).toList();
-        
-        if (users.any((user) => user['email'].toString().toLowerCase() == email)) {
-          setState(() {
-            errorMessage = 'Oops! This email is already taken 💔';
-          });
-          return;
-        }
+      // Check if email already exists using UserStorage
+      final emailExists = await UserStorage.emailExists(email);
+      if (emailExists) {
+        setState(() {
+          errorMessage = 'Oops! This email is already taken 💔';
+        });
+        return;
       }
 
-      // Create new user with complete profile information
+      // Create new user data
       final newUser = {
         'name': name,
         'email': email,
         'phone': phone,
         'address': address,
         'password': password,
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
       };
 
-      users.add(newUser);
-      await prefs.setString('users', jsonEncode(users));
+      // Save user using UserStorage
+      final success = await UserStorage.saveUser(newUser);
 
-      if (mounted) {
+      if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("🎉 Account created successfully! Please login to continue."),
@@ -98,6 +88,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           if (mounted) {
             Navigator.pushReplacementNamed(context, '/login');
           }
+        });
+      } else {
+        setState(() {
+          errorMessage = 'Registration failed. Please try again.';
         });
       }
     } catch (e) {
@@ -182,19 +176,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           key: _formKey,
           child: Column(
             children: [
-              // Logo/Icon
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.pinkAccent.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.child_care,
-                  size: 60,
-                  color: Colors.pinkAccent,
-                ),
-              ),
+              // Your original baby icon
+              Image.asset('assets/images/baby_icon.png', height: 80),
               
               const SizedBox(height: 10),
               const Text(
