@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/product/product_list_screen.dart';
-import 'screens/bottom_nav_screen.dart';
+import 'screens/bottom_nav_screen.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  runApp(const BabyShopHubApp());
+  final prefs = await SharedPreferences.getInstance();
+  // Changed to check for 'loggedInUser' instead of 'loggedInUserEmail'
+  final loggedInUser = prefs.getString('loggedInUser');
+  final isLoggedIn = loggedInUser != null;
+
+  runApp(BabyShopHubApp(isLoggedIn: isLoggedIn));
 }
 
 class BabyShopHubApp extends StatelessWidget {
-  const BabyShopHubApp({super.key});
+  final bool isLoggedIn;
+
+  const BabyShopHubApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -23,17 +28,12 @@ class BabyShopHubApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.pink,
-        fontFamily: 'Poppins', // If you have this font
       ),
-      // Always start with splash screen
-      home: const SplashScreen(),
+      initialRoute: isLoggedIn ? '/home' : '/login',
       routes: {
-        '/splash': (context) => const SplashScreen(),
         '/home': (context) => const BottomNavScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        
-        // Keep this only if needed
         '/products': (context) => ProductListScreen(
           onAddToCart: (product) {
             debugPrint('Added ${product.name}');
@@ -69,7 +69,8 @@ class HomeScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
-              await prefs.remove('loggedInUserEmail'); // logout
+              // Changed to remove 'loggedInUser' instead of 'loggedInUserEmail'
+              await prefs.remove('loggedInUser');
               Navigator.pushReplacementNamed(context, '/login');
             },
             child: const Text("Logout"),

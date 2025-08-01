@@ -318,7 +318,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     itemCount: products.length,
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 0.65,
+                      childAspectRatio: 0.75,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),
@@ -390,8 +390,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product Image
-            Expanded(
-              flex: 3,
+            SizedBox(
+              height: 120,
+              width: double.infinity,
               child: Stack(
                 children: [
                   ClipRRect(
@@ -399,9 +400,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     child: Image.network(
                       product.imageUrl,
                       width: double.infinity,
+                      height: 120,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
+                          height: 120,
                           color: Colors.grey[200],
                           child: const Icon(
                             Icons.image_not_supported,
@@ -458,11 +461,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
             // Product Info
             Expanded(
-              flex: 2,
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       product.name,
@@ -481,38 +484,48 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         fontSize: 10,
                         color: Colors.grey[600],
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         if (product.rating > 0)
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.star,
-                                color: Colors.orange,
-                                size: 12,
-                              ),
-                              Text(
-                                product.rating.toStringAsFixed(1),
-                                style: const TextStyle(fontSize: 10),
-                              ),
-                            ],
+                          Flexible(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  color: Colors.orange,
+                                  size: 12,
+                                ),
+                                Text(
+                                  product.rating.toStringAsFixed(1),
+                                  style: const TextStyle(fontSize: 10),
+                                ),
+                              ],
+                            ),
                           ),
                         const Spacer(),
-                        Text(
-                          product.formattedPrice,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                        Flexible(
+                          child: Text(
+                            product.formattedPrice,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
-                    const Spacer(),
+                    const SizedBox(height: 4),
                     SizedBox(
                       width: double.infinity,
+                      height: 28,
                       child: ElevatedButton.icon(
                         onPressed: product.inStock
                             ? () {
@@ -530,11 +543,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             : null,
                         icon: Icon(
                           product.inStock ? Icons.shopping_cart_outlined : Icons.remove_shopping_cart,
-                          size: 14,
+                          size: 12,
                         ),
                         label: Text(
                           product.inStock ? "Add" : "Unavailable",
-                          style: const TextStyle(fontSize: 11),
+                          style: const TextStyle(fontSize: 10),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: product.inStock ? Colors.pinkAccent : Colors.grey,

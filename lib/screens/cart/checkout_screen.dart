@@ -113,10 +113,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       width: 40,
                                       height: 40,
                                       fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          width: 40,
+                                          height: 40,
+                                          color: Colors.grey[200],
+                                          child: const Icon(Icons.image, color: Colors.grey),
+                                        );
+                                      },
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
+                                    flex: 3,
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
@@ -125,6 +134,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w500,
                                           ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                         Text(
                                           "₦${product.price.toStringAsFixed(2)} each",
@@ -136,18 +147,29 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                       ],
                                     ),
                                   ),
-                                  Text(
-                                    "${quantity}x",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    "₦${(product.price * quantity).toStringAsFixed(2)}",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.pink,
+                                  SizedBox(
+                                    width: 80,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          "${quantity}x",
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          "₦${(product.price * quantity).toStringAsFixed(2)}",
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.pink,
+                                            fontSize: 12,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
