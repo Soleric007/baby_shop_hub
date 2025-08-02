@@ -1,7 +1,6 @@
 // lib/screens/splash_screen.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import 'bottom_nav_screen.dart';
 import 'auth/login_screen.dart';
 
@@ -22,10 +21,16 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _scaleAnimation;
   late Animation<Offset> _slideAnimation;
 
+  bool _hasNavigated = false; // Prevent multiple navigation calls
+
   @override
   void initState() {
     super.initState();
-    
+    _initializeAnimations();
+    _startSplashSequence();
+  }
+
+  void _initializeAnimations() {
     // Initialize animation controllers
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1500),
@@ -66,61 +71,108 @@ class _SplashScreenState extends State<SplashScreen>
       parent: _slideController,
       curve: Curves.easeOutBack,
     ));
+  }
 
-    // Start animations
+  void _startSplashSequence() {
+    // Start animations with proper error handling
     _startAnimations();
     
-    // Navigate after delay
-    _navigateToNextScreen();
+    // Navigate after all animations complete
+    _scheduleNavigation();
   }
 
   void _startAnimations() {
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _scaleController.forward();
+    // Use WidgetsBinding to ensure proper timing
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        // Start scale animation first
+        _scaleController.forward().catchError((error) {
+          debugPrint('Scale animation error: $error');
+        });
+        
+        // Then fade animation
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) {
+            _fadeController.forward().catchError((error) {
+              debugPrint('Fade animation error: $error');
+            });
+          }
+        });
+        
+        // Finally slide animation
+        Future.delayed(const Duration(milliseconds: 700), () {
+          if (mounted) {
+            _slideController.forward().catchError((error) {
+              debugPrint('Slide animation error: $error');
+            });
+          }
+        });
+      }
     });
-    
-    Future.delayed(const Duration(milliseconds: 800), () {
-      _fadeController.forward();
-    });
-    
-    Future.delayed(const Duration(milliseconds: 1200), () {
-      _slideController.forward();
+  }
+
+  void _scheduleNavigation() {
+    // Give enough time for animations to complete
+    Future.delayed(const Duration(milliseconds: 3000), () {
+      if (mounted && !_hasNavigated) {
+        _navigateToNextScreen();
+      }
     });
   }
 
   Future<void> _navigateToNextScreen() async {
-    await Future.delayed(const Duration(milliseconds: 3500));
+    if (_hasNavigated || !mounted) return;
     
-    // Check if user is already logged in
-    final prefs = await SharedPreferences.getInstance();
-    final loggedInUser = prefs.getString('loggedInUser');
+    _hasNavigated = true;
     
-    if (mounted) {
-      if (loggedInUser != null) {
+    try {
+      // Check if user is already logged in
+      final prefs = await SharedPreferences.getInstance();
+      final loggedInUser = prefs.getString('loggedInUser');
+      
+      if (!mounted) return;
+      
+      Widget targetScreen;
+      if (loggedInUser != null && loggedInUser.isNotEmpty) {
         // User is logged in, go to main app
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                const BottomNavScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-            transitionDuration: const Duration(milliseconds: 800),
-          ),
-        );
+        targetScreen = const BottomNavScreen();
       } else {
         // User not logged in, go to login screen
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                const LoginScreen(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-            transitionDuration: const Duration(milliseconds: 800),
+        targetScreen = const LoginScreen();
+      }
+
+      // Use Navigator.pushAndRemoveUntil to completely replace splash screen
+      Navigator.pushAndRemoveUntil(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => targetScreen,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: Tween<double>(
+                begin: 0.0,
+                end: 1.0,
+              ).animate(CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeInOut,
+              )),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 600),
+          settings: RouteSettings(
+            name: loggedInUser != null ? '/main' : '/login',
           ),
+        ),
+        (route) => false, // Remove all previous routes
+      );
+    } catch (e) {
+      debugPrint('Navigation error: $e');
+      // Fallback navigation
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
         );
       }
     }
@@ -128,6 +180,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    // Dispose controllers safely
     _fadeController.dispose();
     _scaleController.dispose();
     _slideController.dispose();
@@ -137,12 +190,12 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF4F4), // Same as login screen
+      backgroundColor: const Color(0xFFFFF4F4),
       body: Container(
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
-          color: Color(0xFFFFF4F4), // Same background as login screen
+          color: Color(0xFFFFF4F4),
         ),
         child: SafeArea(
           child: Column(
@@ -150,16 +203,31 @@ class _SplashScreenState extends State<SplashScreen>
             children: [
               const Spacer(flex: 2),
               
-              // Animated Logo - Using same baby icon as login screen
+              // Animated Logo
               AnimatedBuilder(
                 animation: _scaleAnimation,
                 builder: (context, child) {
                   return Transform.scale(
                     scale: _scaleAnimation.value,
-                    child: Image.asset(
-                      'assets/images/baby_icon.png', 
-                      height: 120,
+                    child: Container(
                       width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.pink.shade100.withOpacity(0.5),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.child_care,
+                        size: 60,
+                        color: Colors.pinkAccent,
+                      ),
                     ),
                   );
                 },

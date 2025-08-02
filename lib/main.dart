@@ -1,16 +1,23 @@
+// lib/main.dart (Updated)
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/product/product_list_screen.dart';
 import 'screens/bottom_nav_screen.dart'; 
+import 'screens/admin/admin_login_screen.dart';
+import 'screens/admin/admin_dashboard_screen.dart';
+import 'services/admin_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize admin service
+  await AdminService.initializeDefaultAdmin();
+  
   final prefs = await SharedPreferences.getInstance();
-  // Changed to check for 'loggedInUser' instead of 'loggedInUserEmail'
-  final loggedInUser = prefs.getString('loggedInUser');
-  final isLoggedIn = loggedInUser != null;
+  final loggedInEmail = prefs.getString('loggedInUserEmail');
+  final isLoggedIn = loggedInEmail != null;
 
   runApp(BabyShopHubApp(isLoggedIn: isLoggedIn));
 }
@@ -34,6 +41,10 @@ class BabyShopHubApp extends StatelessWidget {
         '/home': (context) => const BottomNavScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
+        '/admin-login': (context) => const AdminLoginScreen(),
+        '/admin-dashboard': (context) => const AdminDashboardScreen(),
+
+        // Keep this only if needed
         '/products': (context) => ProductListScreen(
           onAddToCart: (product) {
             debugPrint('Added ${product.name}');
@@ -69,8 +80,7 @@ class HomeScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
-              // Changed to remove 'loggedInUser' instead of 'loggedInUserEmail'
-              await prefs.remove('loggedInUser');
+              await prefs.remove('loggedInUserEmail'); // logout
               Navigator.pushReplacementNamed(context, '/login');
             },
             child: const Text("Logout"),
