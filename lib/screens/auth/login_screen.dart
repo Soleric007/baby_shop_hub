@@ -1,9 +1,8 @@
-// lib/screens/auth/login_screen.dart (Updated)
+// lib/screens/auth/login_screen.dart (Fixed - No Admin Button)
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import '../../data/user_storage.dart';
 import '../bottom_nav_screen.dart';
-import '../admin/admin_login_screen.dart';
+import '../admin/admin_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,35 +15,47 @@ class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   String errorMessage = '';
+  bool _isLoading = false;
 
   Future<void> login() async {
+    setState(() {
+      _isLoading = true;
+      errorMessage = '';
+    });
+
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
 
-    final prefs = await SharedPreferences.getInstance();
-    final storedUsers = prefs.getString('users');
-
-    if (storedUsers != null) {
-      final List users = jsonDecode(storedUsers);
-      final user = users.firstWhere(
-        (u) => u['email'] == email && u['password'] == password,
-        orElse: () => null,
-      );
+    try {
+      final user = await UserStorage.validateLogin(email, password);
 
       if (user != null) {
-        await prefs.setString('loggedInUser', jsonEncode(user));
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const BottomNavScreen()),
-        );
+        await UserStorage.setLoggedInUser(user);
+        
+        // Check if user is admin and redirect accordingly
+        if (user['role'] == 'admin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const BottomNavScreen()),
+          );
+        }
       } else {
         setState(() {
           errorMessage = 'Invalid email or password';
         });
       }
-    } else {
+    } catch (e) {
       setState(() {
-        errorMessage = 'No users found. Please register first 👶';
+        errorMessage = 'Login failed. Please try again.';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
       });
     }
   }
@@ -111,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 40),
 
-            // 👉 Fancy Inputs
+            // Fancy Inputs
             _buildFancyInput(
               hint: 'Email',
               icon: Icons.email_rounded,
@@ -126,22 +137,53 @@ class _LoginScreenState extends State<LoginScreen> {
 
             const SizedBox(height: 10),
             if (errorMessage.isNotEmpty)
-              Text(errorMessage, style: const TextStyle(color: Colors.red)),
+              Container(
+                margin: const EdgeInsets.only(bottom: 15),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red.shade600, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        errorMessage,
+                        style: TextStyle(color: Colors.red.shade600, fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             const SizedBox(height: 30),
 
-            ElevatedButton(
-              onPressed: login,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 100, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : login,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pinkAccent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  elevation: 4,
                 ),
-                elevation: 4,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text('Login', style: TextStyle(fontSize: 18)),
               ),
-              child: const Text('Login', style: TextStyle(fontSize: 18)),
             ),
             const SizedBox(height: 20),
             TextButton(
@@ -151,33 +193,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: const Text(
                 "Don't have an account? Sign Up 🍼",
                 style: TextStyle(color: Colors.pinkAccent),
-              ),
-            ),
-            
-            const SizedBox(height: 30),
-            
-            // Admin Access Button
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.deepPurple.shade200),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: TextButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
-                  );
-                },
-                icon: const Icon(Icons.admin_panel_settings, color: Colors.deepPurple),
-                label: const Text(
-                  'Admin Access 🔐',
-                  style: TextStyle(color: Colors.deepPurple, fontSize: 16),
-                ),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
               ),
             ),
           ],

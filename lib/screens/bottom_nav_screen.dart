@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/product.dart';
+import '../services/order_storage.dart';
+import '../data/user_storage.dart';
 import 'product/product_list_screen.dart';
 import 'cart/cart_screen.dart';
 import 'profile/profile_screen.dart';
@@ -16,7 +18,7 @@ class BottomNavScreen extends StatefulWidget {
 class _BottomNavScreenState extends State<BottomNavScreen> {
   int _selectedIndex = 0;
   Map<Product, int> cartItems = {};
-  List<Map<Product, int>> _orders = [];
+  List<Map<Product, int>> _orders = []; // Keep for backward compatibility
 
   @override
   void initState() {
@@ -27,43 +29,19 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   // Load cart data from SharedPreferences
   Future<void> _loadCartData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      
-      // Load cart items
-      final cartString = prefs.getString('cart_items');
-      if (cartString != null) {
-        final cartData = json.decode(cartString) as Map<String, dynamic>;
-        final loadedCartItems = <Product, int>{};
-        
-        cartData.forEach((key, value) {
-          final productData = json.decode(key) as Map<String, dynamic>;
-          final product = Product.fromMap(productData);
-          loadedCartItems[product] = value as int;
-        });
-        
-        setState(() {
-          cartItems = loadedCartItems;
-        });
-      }
+      // Load cart items using the existing cart storage format
+      final cartStorage = await CartStorage.loadCart();
+      setState(() {
+        cartItems = cartStorage;
+      });
 
-      // Load orders
-      final ordersString = prefs.getString('orders');
-      if (ordersString != null) {
-        final ordersData = json.decode(ordersString) as List;
-        final loadedOrders = <Map<Product, int>>[];
-        
-        for (final orderData in ordersData) {
-          final orderMap = <Product, int>{};
-          (orderData as Map<String, dynamic>).forEach((key, value) {
-            final productData = json.decode(key) as Map<String, dynamic>;
-            final product = Product.fromMap(productData);
-            orderMap[product] = value as int;
-          });
-          loadedOrders.add(orderMap);
-        }
-        
+      // Load orders for the profile screen (legacy format)
+      final currentUser = await UserStorage.getLoggedInUser();
+      if (currentUser != null) {
+        final userOrders = await OrderStorage.getUserOrders(currentUser['email'] ?? '');
+        final legacyOrders = userOrders.map((order) => order.items).toList();
         setState(() {
-          _orders = loadedOrders;
+          _orders = legacyOrders;
         });
       }
     } catch (e) {
@@ -74,25 +52,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   // Save cart data to SharedPreferences
   Future<void> _saveCartData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      
-      // Save cart items
-      final cartData = <String, int>{};
-      cartItems.forEach((product, quantity) {
-        cartData[json.encode(product.toMap())] = quantity;
-      });
-      await prefs.setString('cart_items', json.encode(cartData));
-
-      // Save orders
-      final ordersData = <Map<String, int>>[];
-      for (final order in _orders) {
-        final orderData = <String, int>{};
-        order.forEach((product, quantity) {
-          orderData[json.encode(product.toMap())] = quantity;
-        });
-        ordersData.add(orderData);
-      }
-      await prefs.setString('orders', json.encode(ordersData));
+      await CartStorage.saveCart(cartItems);
     } catch (e) {
       debugPrint('Error saving cart data: $e');
     }
@@ -149,48 +109,84 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     );
   }
 
-  void _clearCart() {
+  Future<void> _clearCart() async {
     if (cartItems.isNotEmpty) {
-      // Save current cart as an order before clearing
-      setState(() {
-        _orders.add(Map<Product, int>.from(cartItems));
-        cartItems.clear();
-      });
+      try {
+        // Get current user
+        final currentUser = await UserStorage.getLoggedInUser();
+        if (currentUser != null) {
+          // Create and save order using OrderStorage
+          final order = await OrderStorage.createOrderFromCart(
+            cartItems,
+            currentUser['email'] ?? '',
+          );
 
-      _saveCartData(); // Save to persistent storage
+          if (order != null) {
+            // Add to legacy orders format for profile screen
+            setState(() {
+              _orders.add(Map<Product, int>.from(cartItems));
+              cartItems.clear();
+            });
 
-      // Show enhanced success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Order placed successfully!',
-                  style: TextStyle(fontWeight: FontWeight.w500),
+            await _saveCartData(); // Save cleared cart
+
+            // Show enhanced success message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.white),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Order placed successfully!',
+                        style: TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+                duration: const Duration(seconds: 3),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                action: SnackBarAction(
+                  label: 'VIEW ORDERS',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    setState(() {
+                      _selectedIndex = 2; // Switch to profile tab
+                    });
+                  },
                 ),
               ),
-            ],
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Failed to place order. Please try again.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please login to place an order.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint('Error placing order: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to place order. Please try again.'),
+            backgroundColor: Colors.red,
           ),
-          duration: const Duration(seconds: 3),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          action: SnackBarAction(
-            label: 'VIEW ORDERS',
-            textColor: Colors.white,
-            onPressed: () {
-              setState(() {
-                _selectedIndex = 2; // Switch to profile tab
-              });
-            },
-          ),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -250,7 +246,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
         cartItems: cartItems,
         onCheckout: _clearCart,
         onRemoveItem: _removeFromCart,
-        // onUpdateQuantity: _updateCartQuantity,
+        onUpdateQuantity: _updateCartQuantity,
       ),
       ProfileScreen(orders: _orders),
     ];
@@ -411,5 +407,66 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
             )
           : null,
     );
+  }
+}
+
+// Cart Storage helper class
+class CartStorage {
+  static const String _cartKey = 'cart_items';
+
+  static Future<Map<Product, int>> loadCart() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cartString = prefs.getString(_cartKey);
+      
+      if (cartString != null) {
+        final cartData = jsonDecode(cartString) as Map<String, dynamic>;
+        final loadedCartItems = <Product, int>{};
+        
+        cartData.forEach((key, value) {
+          try {
+            final productData = jsonDecode(key) as Map<String, dynamic>;
+            final product = Product.fromMap(productData);
+            loadedCartItems[product] = value as int;
+          } catch (e) {
+            debugPrint('Error parsing cart item: $e');
+          }
+        });
+        
+        return loadedCartItems;
+      }
+      return {};
+    } catch (e) {
+      debugPrint('Error loading cart: $e');
+      return {};
+    }
+  }
+
+  static Future<bool> saveCart(Map<Product, int> cartItems) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cartData = <String, int>{};
+      
+      cartItems.forEach((product, quantity) {
+        cartData[jsonEncode(product.toMap())] = quantity;
+      });
+      
+      await prefs.setString(_cartKey, jsonEncode(cartData));
+      return true;
+    } catch (e) {
+      debugPrint('Error saving cart: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> clearCart() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_cartKey);
+      return true;
+    } catch (e) {
+      debugPrint('Error clearing cart: $e');
+      return false;
+    }
   }
 }

@@ -223,11 +223,13 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.child_care,
-                        size: 60,
-                        color: Colors.pinkAccent,
+                      child: Image.asset(
+                        'assets/images/baby_icon.png',
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.contain,
                       ),
+
                     ),
                   );
                 },

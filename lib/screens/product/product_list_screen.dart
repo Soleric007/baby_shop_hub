@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
 import '../../data/mock_products.dart';
+import '../../services/admin_service.dart';
 import '../product/product_details_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
@@ -22,9 +23,51 @@ class _ProductListScreenState extends State<ProductListScreen> {
   bool _inStockOnly = false;
   double _minRating = 0;
   bool _showFilters = false;
+  
+  List<Product> _allProducts = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Load products from admin service (user-added products)
+      final adminProducts = await AdminService.getAllProducts();
+      
+      // Combine with mock products
+      final combinedProducts = <Product>[];
+      combinedProducts.addAll(mockProducts);
+      combinedProducts.addAll(adminProducts);
+      
+      // Remove duplicates based on ID
+      final uniqueProducts = <String, Product>{};
+      for (final product in combinedProducts) {
+        uniqueProducts[product.id] = product;
+      }
+      
+      setState(() {
+        _allProducts = uniqueProducts.values.toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading products: $e');
+      setState(() {
+        _allProducts = mockProducts; // Fallback to mock products
+        _isLoading = false;
+      });
+    }
+  }
 
   List<Product> get filteredProducts {
-    return mockProducts.where((product) {
+    return _allProducts.where((product) {
       return product.matchesSearch(_searchQuery) &&
              product.matchesFilters(
                selectedCategory: _selectedCategory,
@@ -81,255 +124,271 @@ class _ProductListScreenState extends State<ProductListScreen> {
               });
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: _loadProducts,
+            tooltip: 'Refresh Products',
+          ),
         ],
       ),
-      body: Column(
-        children: [
-          // Search Bar
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: Colors.white,
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: "Search baby items, brands, categories...",
-                prefixIcon: const Icon(Icons.search, color: Colors.pink),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.grey),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _searchQuery = '';
-                          });
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.grey[100],
-                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  borderSide: const BorderSide(color: Colors.pink, width: 2),
-                ),
-              ),
-            ),
-          ),
-
-          // Category Chips
-          Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                final category = categories[index];
-                final isSelected = category == _selectedCategory;
-                
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(category),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedCategory = category;
-                      });
-                    },
-                    selectedColor: Colors.pink[200],
-                    backgroundColor: Colors.white,
-                    labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : Colors.pink[700],
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      side: BorderSide(
-                        color: isSelected ? Colors.pink : Colors.pink[200]!,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // Advanced Filters Panel
-          if (_showFilters)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
+      body: _isLoading
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Colors.pinkAccent),
+                  SizedBox(height: 16),
+                  Text('Loading products...'),
                 ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Filters',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.pink,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: _clearFilters,
-                        child: const Text('Clear All'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Brand Filter
-                  DropdownButtonFormField<String>(
-                    value: _selectedBrand,
-                    decoration: const InputDecoration(
-                      labelText: 'Brand',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: brands.map((brand) {
-                      return DropdownMenuItem(
-                        value: brand,
-                        child: Text(brand),
-                      );
-                    }).toList(),
+            )
+          : Column(
+              children: [
+                // Search Bar
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  color: Colors.white,
+                  child: TextField(
+                    controller: _searchController,
                     onChanged: (value) {
                       setState(() {
-                        _selectedBrand = value!;
+                        _searchQuery = value;
                       });
                     },
+                    decoration: InputDecoration(
+                      hintText: "Search baby items, brands, categories...",
+                      prefixIcon: const Icon(Icons.search, color: Colors.pink),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, color: Colors.grey),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: const BorderSide(color: Colors.pink, width: 2),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                ),
 
-                  // Price Range
-                  Text(
-                    'Price Range: \$${_minPrice.toInt()} - \$${_maxPrice.toInt()}',
-                    style: const TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  RangeSlider(
-                    values: RangeValues(_minPrice, _maxPrice),
-                    min: 0,
-                    max: 100,
-                    divisions: 20,
-                    activeColor: Colors.pink,
-                    onChanged: (values) {
-                      setState(() {
-                        _minPrice = values.start;
-                        _maxPrice = values.end;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Additional Filters
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CheckboxListTile(
-                          title: const Text('In Stock Only'),
-                          value: _inStockOnly,
-                          onChanged: (value) {
+                // Category Chips
+                Container(
+                  height: 60,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      final category = categories[index];
+                      final isSelected = category == _selectedCategory;
+                      
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          label: Text(category),
+                          selected: isSelected,
+                          onSelected: (selected) {
                             setState(() {
-                              _inStockOnly = value!;
+                              _selectedCategory = category;
                             });
                           },
-                          activeColor: Colors.pink,
-                          contentPadding: EdgeInsets.zero,
+                          selectedColor: Colors.pink[200],
+                          backgroundColor: Colors.white,
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : Colors.pink[700],
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: BorderSide(
+                              color: isSelected ? Colors.pink : Colors.pink[200]!,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-
-                  // Rating Filter
-                  Text(
-                    'Minimum Rating: ${_minRating.toInt()} stars',
-                    style: const TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  Slider(
-                    value: _minRating,
-                    min: 0,
-                    max: 5,
-                    divisions: 5,
-                    activeColor: Colors.pink,
-                    onChanged: (value) {
-                      setState(() {
-                        _minRating = value;
-                      });
+                      );
                     },
-                  ),
-                ],
-              ),
-            ),
-
-          const SizedBox(height: 16),
-
-          // Results Count
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${products.length} products found',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                if (_searchQuery.isNotEmpty || _selectedCategory != 'All')
-                  TextButton.icon(
-                    onPressed: _clearFilters,
-                    icon: const Icon(Icons.clear, size: 16),
-                    label: const Text('Clear'),
+
+                // Advanced Filters Panel
+                if (_showFilters)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Filters',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.pink,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: _clearFilters,
+                              child: const Text('Clear All'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        
+                        // Brand Filter
+                        DropdownButtonFormField<String>(
+                          value: _selectedBrand,
+                          decoration: const InputDecoration(
+                            labelText: 'Brand',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: brands.map((brand) {
+                            return DropdownMenuItem(
+                              value: brand,
+                              child: Text(brand),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedBrand = value!;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Price Range
+                        Text(
+                          'Price Range: \$${_minPrice.toInt()} - \$${_maxPrice.toInt()}',
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        RangeSlider(
+                          values: RangeValues(_minPrice, _maxPrice),
+                          min: 0,
+                          max: 100,
+                          divisions: 20,
+                          activeColor: Colors.pink,
+                          onChanged: (values) {
+                            setState(() {
+                              _minPrice = values.start;
+                              _maxPrice = values.end;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Additional Filters
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CheckboxListTile(
+                                title: const Text('In Stock Only'),
+                                value: _inStockOnly,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _inStockOnly = value!;
+                                  });
+                                },
+                                activeColor: Colors.pink,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Rating Filter
+                        Text(
+                          'Minimum Rating: ${_minRating.toInt()} stars',
+                          style: const TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        Slider(
+                          value: _minRating,
+                          min: 0,
+                          max: 5,
+                          divisions: 5,
+                          activeColor: Colors.pink,
+                          onChanged: (value) {
+                            setState(() {
+                              _minRating = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
                   ),
+
+                const SizedBox(height: 16),
+
+                // Results Count
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${products.length} products found',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      if (_searchQuery.isNotEmpty || _selectedCategory != 'All')
+                        TextButton.icon(
+                          onPressed: _clearFilters,
+                          icon: const Icon(Icons.clear, size: 16),
+                          label: const Text('Clear'),
+                        ),
+                    ],
+                  ),
+                ),
+
+                // Product Grid
+                Expanded(
+                  child: products.isEmpty
+                      ? _buildEmptyState()
+                      : GridView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: products.length,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.75,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                          ),
+                          itemBuilder: (context, index) {
+                            final product = products[index];
+                            return _buildProductCard(context, product);
+                          },
+                        ),
+                ),
               ],
             ),
-          ),
-
-          // Product Grid
-          Expanded(
-            child: products.isEmpty
-                ? _buildEmptyState()
-                : GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: products.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.75,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
-                    itemBuilder: (context, index) {
-                      final product = products[index];
-                      return _buildProductCard(context, product);
-                    },
-                  ),
-          ),
-        ],
-      ),
     );
   }
 

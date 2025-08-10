@@ -8,6 +8,66 @@ import '../models/order.dart';
 class OrderStorage {
   static const _key = 'babyshop_orders_v2';
 
+  // Create a new order from cart items (this was missing)
+  static Future<Order?> createOrderFromCart(
+    Map<Product, int> cartItems,
+    String userEmail, {
+    String? deliveryAddress,
+  }) async {
+    try {
+      final orderId = _generateOrderId();
+      final trackingNumber = _generateTrackingNumber();
+      final total = cartItems.entries.fold(
+        0.0,
+        (sum, entry) => sum + (entry.key.price * entry.value),
+      );
+      
+      final now = DateTime.now();
+      final estimatedDelivery = now.add(const Duration(days: 3));
+      
+      final order = Order(
+        id: orderId,
+        items: cartItems,
+        total: total,
+        orderDate: now,
+        status: OrderStatus.pending,
+        trackingNumber: trackingNumber,
+        deliveryAddress: deliveryAddress ?? 'Default Address',
+        estimatedDelivery: estimatedDelivery,
+        statusHistory: [
+          OrderStatusUpdate(
+            status: OrderStatus.pending,
+            timestamp: now,
+            message: 'Order placed successfully',
+          ),
+        ],
+      );
+
+      await _saveOrder(order);
+      
+      // Simulate order progression
+      _simulateOrderProgress(orderId);
+      
+      return order;
+    } catch (e) {
+      print('Error creating order from cart: $e');
+      return null;
+    }
+  }
+
+  // Get orders for a specific user (this was missing)
+  static Future<List<Order>> getUserOrders(String userEmail) async {
+    try {
+      final orders = await loadOrders();
+      // For now, return all orders since we don't have user association in the Order model
+      // In a real app, you'd filter by userEmail
+      return orders;
+    } catch (e) {
+      print('Error getting user orders: $e');
+      return [];
+    }
+  }
+
   // Create a new order with tracking simulation
   static Future<String> createOrder(
     Map<Product, int> cartItems,

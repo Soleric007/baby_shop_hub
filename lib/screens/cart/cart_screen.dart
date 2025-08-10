@@ -7,12 +7,14 @@ class CartScreen extends StatelessWidget {
   final Map<Product, int> cartItems;
   final VoidCallback onCheckout;
   final Function(Product) onRemoveItem;
+  final Function(Product, int) onUpdateQuantity; // Added this parameter
 
   const CartScreen({
     super.key,
     required this.cartItems,
     required this.onCheckout,
     required this.onRemoveItem,
+    required this.onUpdateQuantity, // Added this parameter
   });
 
   @override
@@ -36,35 +38,159 @@ class CartScreen extends StatelessWidget {
                 final quantity = entry.value;
                 return Card(
                   margin: const EdgeInsets.only(bottom: 10),
-                  child: ListTile(
-                    leading: Image.network(product.imageUrl, width: 50),
-                    title: Text(product.name),
-                    subtitle: Text("Qty: $quantity\n₦${product.price}"),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text("Remove from cart?"),
-                            content: Text(
-                                "Are you sure you want to remove ${product.name}?"),
-                            actions: [
-                              TextButton(
-                                child: const Text("Cancel"),
-                                onPressed: () => Navigator.pop(context),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        // Product Image
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            product.imageUrl, 
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                width: 60,
+                                height: 60,
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.image_not_supported),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        
+                        // Product Details
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                product.name,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              TextButton(
-                                child: const Text("Remove"),
-                                onPressed: () {
-                                  onRemoveItem(product);
-                                  Navigator.pop(context);
-                                },
+                              const SizedBox(height: 4),
+                              Text(
+                                "₦${product.price.toStringAsFixed(2)}",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.pink[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
                           ),
-                        );
-                      },
+                        ),
+                        
+                        // Quantity Controls
+                        Column(
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Decrease quantity button
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.pink[100],
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: IconButton(
+                                    onPressed: quantity > 1
+                                        ? () => onUpdateQuantity(product, quantity - 1)
+                                        : null,
+                                    icon: const Icon(Icons.remove, size: 18),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 32,
+                                      minHeight: 32,
+                                    ),
+                                    color: quantity > 1 ? Colors.pink[700] : Colors.grey,
+                                  ),
+                                ),
+                                
+                                // Quantity display
+                                Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(color: Colors.pink[200]!),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    quantity.toString(),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                                
+                                // Increase quantity button
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.pink[100],
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: IconButton(
+                                    onPressed: () => onUpdateQuantity(product, quantity + 1),
+                                    icon: const Icon(Icons.add, size: 18),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 32,
+                                      minHeight: 32,
+                                    ),
+                                    color: Colors.pink[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            
+                            const SizedBox(height: 8),
+                            
+                            // Remove button
+                            TextButton.icon(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    title: const Text("Remove from cart?"),
+                                    content: Text(
+                                        "Are you sure you want to remove ${product.name}?"),
+                                    actions: [
+                                      TextButton(
+                                        child: const Text("Cancel"),
+                                        onPressed: () => Navigator.pop(context),
+                                      ),
+                                      TextButton(
+                                        child: const Text("Remove"),
+                                        onPressed: () {
+                                          onRemoveItem(product);
+                                          Navigator.pop(context);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.delete_outline, size: 16),
+                              label: const Text("Remove", style: TextStyle(fontSize: 12)),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red[600],
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 );

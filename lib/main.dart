@@ -1,6 +1,7 @@
-// lib/main.dart (Updated)
+// lib/main.dart (Fixed)
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/product/product_list_screen.dart';
@@ -8,24 +9,20 @@ import 'screens/bottom_nav_screen.dart';
 import 'screens/admin/admin_login_screen.dart';
 import 'screens/admin/admin_dashboard_screen.dart';
 import 'services/admin_service.dart';
+import 'data/user_storage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize admin service
+  // Initialize admin service and test user
   await AdminService.initializeDefaultAdmin();
+  await UserStorage.initializeTestUser();
   
-  final prefs = await SharedPreferences.getInstance();
-  final loggedInEmail = prefs.getString('loggedInUserEmail');
-  final isLoggedIn = loggedInEmail != null;
-
-  runApp(BabyShopHubApp(isLoggedIn: isLoggedIn));
+  runApp(const BabyShopHubApp());
 }
 
 class BabyShopHubApp extends StatelessWidget {
-  final bool isLoggedIn;
-
-  const BabyShopHubApp({super.key, required this.isLoggedIn});
+  const BabyShopHubApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -36,15 +33,14 @@ class BabyShopHubApp extends StatelessWidget {
         useMaterial3: true,
         colorSchemeSeed: Colors.pink,
       ),
-      initialRoute: isLoggedIn ? '/home' : '/login',
+      // Always start with splash screen
+      home: const SplashScreen(),
       routes: {
         '/home': (context) => const BottomNavScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/admin-login': (context) => const AdminLoginScreen(),
         '/admin-dashboard': (context) => const AdminDashboardScreen(),
-
-        // Keep this only if needed
         '/products': (context) => ProductListScreen(
           onAddToCart: (product) {
             debugPrint('Added ${product.name}');
@@ -79,8 +75,7 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.remove('loggedInUserEmail'); // logout
+              await UserStorage.logout();
               Navigator.pushReplacementNamed(context, '/login');
             },
             child: const Text("Logout"),

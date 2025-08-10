@@ -25,14 +25,26 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Future<void> loadAdminData() async {
-    final admin = await AdminService.getCurrentAdmin();
-    final analyticsData = await AdminService.getAnalytics();
-    
-    setState(() {
-      currentAdmin = admin;
-      analytics = analyticsData;
-      isLoading = false;
-    });
+    try {
+      final adminData = await AdminService.getCurrentAdmin();
+      final analyticsData = await AdminService.getAnalytics();
+      
+      setState(() {
+        // Convert Map to Admin object if adminData is not null
+        if (adminData != null) {
+          currentAdmin = Admin.fromMap(adminData);
+        } else {
+          currentAdmin = null;
+        }
+        analytics = analyticsData;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading admin data: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> logout() async {

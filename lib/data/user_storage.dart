@@ -23,14 +23,16 @@ class UserStorage {
         }
       }
 
-      // Add timestamps
+      // Add timestamps and default role
       userData['created_at'] = DateTime.now().toIso8601String();
       userData['updated_at'] = DateTime.now().toIso8601String();
+      userData['role'] = userData['role'] ?? 'user'; // Default role is 'user'
 
       users.add(userData);
       await prefs.setString(_usersKey, jsonEncode(users));
       return true;
     } catch (e) {
+      print('Error saving user: $e');
       return false;
     }
   }
@@ -71,6 +73,35 @@ class UserStorage {
 
       return true;
     } catch (e) {
+      print('Error updating user: $e');
+      return false;
+    }
+  }
+
+  // Promote user to admin
+  static Future<bool> promoteToAdmin(String email) async {
+    try {
+      final user = await getUserByEmail(email);
+      if (user == null) return false;
+      
+      user['role'] = 'admin';
+      return await updateUser(user);
+    } catch (e) {
+      print('Error promoting user to admin: $e');
+      return false;
+    }
+  }
+
+  // Demote admin to user
+  static Future<bool> demoteFromAdmin(String email) async {
+    try {
+      final user = await getUserByEmail(email);
+      if (user == null) return false;
+      
+      user['role'] = 'user';
+      return await updateUser(user);
+    } catch (e) {
+      print('Error demoting admin: $e');
       return false;
     }
   }
@@ -86,6 +117,7 @@ class UserStorage {
       final List<dynamic> decodedUsers = jsonDecode(usersJson);
       return decodedUsers.map((user) => Map<String, dynamic>.from(user)).toList();
     } catch (e) {
+      print('Error loading users: $e');
       return [];
     }
   }
@@ -102,6 +134,7 @@ class UserStorage {
       
       return user.isNotEmpty ? user : null;
     } catch (e) {
+      print('Error validating login: $e');
       return null;
     }
   }
@@ -113,6 +146,7 @@ class UserStorage {
       return users.any((user) => 
           user['email'].toString().toLowerCase() == email.toLowerCase());
     } catch (e) {
+      print('Error checking email existence: $e');
       return false;
     }
   }
@@ -122,8 +156,12 @@ class UserStorage {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_loggedInUserKey, jsonEncode(userData));
+      
+      // Also set a simple flag for quick login check
+      await prefs.setString('loggedInUserEmail', userData['email'] ?? '');
       return true;
     } catch (e) {
+      print('Error setting logged in user: $e');
       return false;
     }
   }
@@ -138,6 +176,7 @@ class UserStorage {
       
       return Map<String, dynamic>.from(jsonDecode(userJson));
     } catch (e) {
+      print('Error getting logged in user: $e');
       return null;
     }
   }
@@ -147,16 +186,23 @@ class UserStorage {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_loggedInUserKey);
+      await prefs.remove('loggedInUserEmail');
       return true;
     } catch (e) {
+      print('Error logging out: $e');
       return false;
     }
   }
 
   // Check if user is logged in
   static Future<bool> isLoggedIn() async {
-    final user = await getLoggedInUser();
-    return user != null;
+    try {
+      final user = await getLoggedInUser();
+      return user != null;
+    } catch (e) {
+      print('Error checking login status: $e');
+      return false;
+    }
   }
 
   // Get user by email
@@ -170,7 +216,32 @@ class UserStorage {
       
       return user.isNotEmpty ? user : null;
     } catch (e) {
+      print('Error getting user by email: $e');
       return null;
+    }
+  }
+
+  // Delete user by email
+  static Future<bool> deleteUser(String email) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final usersJson = prefs.getString(_usersKey);
+      
+      if (usersJson == null) return false;
+
+      final List<dynamic> decodedUsers = jsonDecode(usersJson);
+      List<Map<String, dynamic>> users = decodedUsers.map((user) => 
+          Map<String, dynamic>.from(user)).toList();
+
+      // Remove user with matching email
+      users.removeWhere((user) => 
+          user['email'].toString().toLowerCase() == email.toLowerCase());
+
+      await prefs.setString(_usersKey, jsonEncode(users));
+      return true;
+    } catch (e) {
+      print('Error deleting user: $e');
+      return false;
     }
   }
 
@@ -180,26 +251,46 @@ class UserStorage {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_usersKey);
       await prefs.remove(_loggedInUserKey);
+      await prefs.remove('loggedInUserEmail');
       return true;
     } catch (e) {
+      print('Error clearing all data: $e');
       return false;
     }
   }
 
   // Initialize with default test user (optional - for development)
   static Future<void> initializeTestUser() async {
-    final users = await loadUsers();
-    if (users.isEmpty) {
-      final testUser = {
-        'name': 'Test User',
-        'email': 'test@babyshop.com',
-        'phone': '1234567890',
-        'address': '123 Test Street, Test City, TC 12345',
-        'password': '123456',
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
-      };
-      await saveUser(testUser);
+    try {
+      final users = await loadUsers();
+      if (users.isEmpty) {
+        final testUser = {
+          'name': 'Test User',
+          'email': 'test@babyshop.com',
+          'phone': '1234567890',
+          'address': '123 Test Street, Test City, TC 12345',
+          'password': '123456',
+          'role': 'user',
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        };
+        await saveUser(testUser);
+        
+        // Also create a test admin
+        final testAdmin = {
+          'name': 'Test Admin',
+          'email': 'admin@babyshop.com',
+          'phone': '0987654321',
+          'address': '456 Admin Street, Admin City, AC 54321',
+          'password': 'admin123',
+          'role': 'admin',
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        };
+        await saveUser(testAdmin);
+      }
+    } catch (e) {
+      print('Error initializing test users: $e');
     }
   }
 }
