@@ -20,11 +20,11 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink[50],
+      backgroundColor: Colors.blue[50],
       appBar: AppBar(
         title: const Text('Your Cart 🛒'),
         centerTitle: true,
-        backgroundColor: Colors.pink[100],
+        backgroundColor: Colors.blue[100],
       ),
       body: cartItems.isEmpty
           ? const Center(
@@ -81,7 +81,7 @@ class CartScreen extends StatelessWidget {
                                 "₦${product.price.toStringAsFixed(2)}",
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.pink[600],
+                                  color: Colors.blue[600],
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -98,7 +98,7 @@ class CartScreen extends StatelessWidget {
                                 // Decrease quantity button
                                 Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.pink[100],
+                                    color: Colors.blue[100],
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: IconButton(
@@ -110,7 +110,7 @@ class CartScreen extends StatelessWidget {
                                       minWidth: 32,
                                       minHeight: 32,
                                     ),
-                                    color: quantity > 1 ? Colors.pink[700] : Colors.grey,
+                                    color: quantity > 1 ? Colors.blue[700] : Colors.grey,
                                   ),
                                 ),
                                 
@@ -123,7 +123,7 @@ class CartScreen extends StatelessWidget {
                                   ),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    border: Border.all(color: Colors.pink[200]!),
+                                    border: Border.all(color: Colors.blue[200]!),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
@@ -138,7 +138,7 @@ class CartScreen extends StatelessWidget {
                                 // Increase quantity button
                                 Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.pink[100],
+                                    color: Colors.blue[100],
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: IconButton(
@@ -148,7 +148,7 @@ class CartScreen extends StatelessWidget {
                                       minWidth: 32,
                                       minHeight: 32,
                                     ),
-                                    color: Colors.pink[700],
+                                    color: Colors.blue[700],
                                   ),
                                 ),
                               ],
@@ -224,7 +224,7 @@ class CartScreen extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pink[300],
+                  backgroundColor: Colors.blue[300],
                   foregroundColor: Colors.white,
                   elevation: 4,
                   padding: const EdgeInsets.symmetric(vertical: 14),

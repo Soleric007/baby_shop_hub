@@ -130,7 +130,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             : TextCapitalization.words,
         decoration: InputDecoration(
           hintText: hint,
-          prefixIcon: Icon(icon, color: Colors.pinkAccent),
+          prefixIcon: Icon(icon, color: Colors.blueAccent),
           suffixIcon: suffixIcon,
           filled: true,
           fillColor: Colors.white,
@@ -144,7 +144,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(18),
-            borderSide: const BorderSide(color: Colors.pinkAccent, width: 2),
+            borderSide: const BorderSide(color: Colors.blueAccent, width: 2),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(18),
@@ -162,9 +162,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF4F4),
+      backgroundColor: const Color(0xFFE3F2FD),
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: Colors.blueAccent,
         title: const Text('Create Account 🍼'),
         centerTitle: true,
         foregroundColor: Colors.white,
@@ -185,7 +185,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.pinkAccent,
+                  color: Colors.blueAccent,
                 ),
               ),
               const SizedBox(height: 8),
@@ -193,7 +193,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 'Create your BabyShopHub account',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Color(0xFF888899),
+                  color: Color(0xFF2196F3),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -275,7 +275,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                    color: Colors.pinkAccent,
+                    color: Colors.blueAccent,
                   ),
                   onPressed: () {
                     setState(() {
@@ -303,7 +303,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
-                    color: Colors.pinkAccent,
+                    color: Colors.blueAccent,
                   ),
                   onPressed: () {
                     setState(() {
@@ -356,7 +356,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : register,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.pinkAccent,
+                    backgroundColor: Colors.blueAccent,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
@@ -386,7 +386,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 },
                 child: const Text(
                   "Already have an account? Login 💼",
-                  style: TextStyle(color: Colors.pinkAccent, fontSize: 16),
+                  style: TextStyle(color: Colors.blueAccent, fontSize: 16),
                 ),
               ),
             ],

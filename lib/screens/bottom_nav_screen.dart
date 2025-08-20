@@ -35,15 +35,8 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
         cartItems = cartStorage;
       });
 
-      // Load orders for the profile screen (legacy format)
-      final currentUser = await UserStorage.getLoggedInUser();
-      if (currentUser != null) {
-        final userOrders = await OrderStorage.getUserOrders(currentUser['email'] ?? '');
-        final legacyOrders = userOrders.map((order) => order.items).toList();
-        setState(() {
-          _orders = legacyOrders;
-        });
-      }
+      // Load orders for the profile screen (legacy format) - REMOVED DUPLICATION
+      // The profile screen now loads orders directly from OrderStorage
     } catch (e) {
       debugPrint('Error loading cart data: $e');
     }
@@ -115,16 +108,15 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
         // Get current user
         final currentUser = await UserStorage.getLoggedInUser();
         if (currentUser != null) {
-          // Create and save order using OrderStorage
+          // Create and save order using OrderStorage - ONLY ONCE
           final order = await OrderStorage.createOrderFromCart(
             cartItems,
             currentUser['email'] ?? '',
           );
 
           if (order != null) {
-            // Add to legacy orders format for profile screen
+            // Clear cart items - REMOVED DUPLICATE ORDER ADDITION
             setState(() {
-              _orders.add(Map<Product, int>.from(cartItems));
               cartItems.clear();
             });
 
@@ -248,7 +240,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
         onRemoveItem: _removeFromCart,
         onUpdateQuantity: _updateCartQuantity,
       ),
-      ProfileScreen(orders: _orders),
+      ProfileScreen(orders: _orders), // Keep legacy format for compatibility
     ];
 
     return Scaffold(
@@ -274,7 +266,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
           child: BottomNavigationBar(
             currentIndex: _selectedIndex,
             onTap: _onTabTapped,
-            selectedItemColor: Colors.pinkAccent,
+            selectedItemColor: Colors.blueAccent,
             unselectedItemColor: Colors.grey[400],
             backgroundColor: Colors.white,
             elevation: 0,
@@ -396,7 +388,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                     _selectedIndex = 1; // Switch to cart
                   });
                 },
-                backgroundColor: Colors.pinkAccent,
+                backgroundColor: Colors.blueAccent,
                 foregroundColor: Colors.white,
                 icon: const Icon(Icons.shopping_cart),
                 label: Text(

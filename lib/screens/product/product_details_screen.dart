@@ -88,7 +88,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
           _isFavorite ? 'Added to favorites! 💖' : 'Removed from favorites',
         ),
         duration: const Duration(seconds: 2),
-        backgroundColor: _isFavorite ? Colors.pink : Colors.grey,
+        backgroundColor: _isFavorite ? Colors.blue : Colors.grey,
       ),
     );
   }
@@ -259,7 +259,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.pink,
+              color: Colors.blue,
             ),
           ),
           const SizedBox(height: 4),
@@ -365,9 +365,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             children: [
               Chip(
                 label: Text(widget.product.category),
-                backgroundColor: Colors.pink[100],
+                backgroundColor: Colors.blue[100],
                 labelStyle: const TextStyle(
-                  color: Colors.pink,
+                  color: Colors.blue,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -394,7 +394,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.pink,
+              color: Colors.blue,
             ),
           ),
           const SizedBox(height: 12),
@@ -413,7 +413,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.pink,
+              color: Colors.blue,
             ),
           ),
           const SizedBox(height: 12),
@@ -448,7 +448,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.pink,
+              color: Colors.blue,
             ),
           ),
           const SizedBox(height: 16),
@@ -539,7 +539,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.pink,
+              color: Colors.blue,
             ),
           ),
           const SizedBox(height: 16),
@@ -584,7 +584,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.pink, width: 2),
+                borderSide: const BorderSide(color: Colors.blue, width: 2),
               ),
             ),
             maxLines: 4,
@@ -598,7 +598,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               icon: const Icon(Icons.send),
               label: const Text('Submit Review'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pink,
+                backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -615,13 +615,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.pink[50],
+      backgroundColor: Colors.blue[50],
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
-            backgroundColor: Colors.pink[100],
+            backgroundColor: Colors.blue[100],
             flexibleSpace: FlexibleSpaceBar(
               background: _buildImageCarousel(),
             ),
@@ -651,9 +651,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
               children: [
                 TabBar(
                   controller: _tabController,
-                  labelColor: Colors.pink,
+                  labelColor: Colors.blue,
                   unselectedLabelColor: Colors.grey,
-                  indicatorColor: Colors.pink,
+                  indicatorColor: Colors.blue,
                   tabs: const [
                     Tab(text: 'Details'),
                     Tab(text: 'Reviews'),
@@ -695,14 +695,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                 onPressed: _toggleFavorite,
                 icon: Icon(
                   _isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: _isFavorite ? Colors.red : Colors.pink,
+                  color: _isFavorite ? Colors.red : Colors.blue,
                 ),
                 label: Text(
-                  _isFavorite ? 'Favorited' : 'Add to Favorites',
-                  style: TextStyle(color: Colors.pink),
+                  _isFavorite ? 'Favorited' : 'Favorite?',
+                  style: TextStyle(color: Colors.blue),
                 ),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.pink),
+                  side: const BorderSide(color: Colors.blue),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -722,7 +722,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen>
                   widget.product.inStock ? 'Add to Cart' : 'Out of Stock',
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: widget.product.inStock ? Colors.pinkAccent : Colors.grey,
+                  backgroundColor: widget.product.inStock ? Colors.blueAccent : Colors.grey,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(

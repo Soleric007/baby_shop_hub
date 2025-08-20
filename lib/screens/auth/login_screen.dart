@@ -1,4 +1,4 @@
-// lib/screens/auth/login_screen.dart (Fixed - No Admin Button)
+
 import 'package:flutter/material.dart';
 import '../../data/user_storage.dart';
 import '../bottom_nav_screen.dart';
@@ -73,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Colors.pink.shade100.withOpacity(0.4),
+            color: Colors.blue.shade100.withOpacity(0.4),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -84,8 +84,8 @@ class _LoginScreenState extends State<LoginScreen> {
         obscureText: obscure,
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.pink.shade200),
-          prefixIcon: Icon(icon, color: Colors.pinkAccent),
+          hintStyle: TextStyle(color: Colors.blue.shade200),
+          prefixIcon: Icon(icon, color: Colors.blueAccent),
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
@@ -98,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF4F4),
+      backgroundColor: const Color(0xFFE3F2FD),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
         child: Column(
@@ -111,13 +111,13 @@ class _LoginScreenState extends State<LoginScreen> {
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF444466),
+                color: Color(0xFF1565C0),
               ),
             ),
             const SizedBox(height: 10),
             const Text(
               'Login to your BabyShopHub account',
-              style: TextStyle(fontSize: 16, color: Color(0xFF888899)),
+              style: TextStyle(fontSize: 16, color: Color(0xFF2196F3)),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 40),
@@ -165,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : login,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
+                  backgroundColor: Colors.blueAccent,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -192,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
               },
               child: const Text(
                 "Don't have an account? Sign Up 🍼",
-                style: TextStyle(color: Colors.pinkAccent),
+                style: TextStyle(color: Colors.blueAccent),
               ),
             ),
           ],

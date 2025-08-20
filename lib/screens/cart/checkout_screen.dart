@@ -53,10 +53,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final entries = widget.cartItems.entries.toList();
 
     return Scaffold(
-      backgroundColor: Colors.pink[50],
+      backgroundColor: Colors.blue[50],
       appBar: AppBar(
         title: const Text('Checkout 🍼'),
-        backgroundColor: Colors.pink[200],
+        backgroundColor: Colors.blue[200],
         centerTitle: true,
       ),
       body: Column(
@@ -89,7 +89,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.pink,
+                            color: Colors.blue,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -163,7 +163,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                           "₦${(product.price * quantity).toStringAsFixed(2)}",
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.pink,
+                                            color: Colors.blue,
                                             fontSize: 12,
                                           ),
                                           maxLines: 1,
@@ -204,7 +204,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.pink,
+                            color: Colors.blue,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -219,7 +219,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Colors.pink),
+                              borderSide: const BorderSide(color: Colors.blue),
                             ),
                             filled: true,
                             fillColor: Colors.grey.shade50,
@@ -273,7 +273,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.pink,
+                          color: Colors.blue,
                         ),
                       ),
                     ],
@@ -284,7 +284,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.pinkAccent,
+                      backgroundColor: Colors.blueAccent,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -407,7 +407,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pink,
+                  backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
                 ),
                 child: const Text("Track Order"),

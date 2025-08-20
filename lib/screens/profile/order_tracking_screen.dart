@@ -34,9 +34,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF4F4),
+      backgroundColor: const Color(0xFFE3F2FD),
       appBar: AppBar(
-        backgroundColor: Colors.pink[100],
+        backgroundColor: Colors.blue[100],
         title: const Text('Track Order 📦'),
         centerTitle: true,
         leading: IconButton(
@@ -109,10 +109,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.pink.shade100),
+        border: Border.all(color: Colors.blue.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.pink.shade50,
+            color: Colors.blue.shade50,
             blurRadius: 6,
             offset: const Offset(0, 3),
           )
@@ -187,7 +187,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: Colors.pink),
+        Icon(icon, size: 16, color: Colors.blue),
         const SizedBox(width: 8),
         Text(
           "$label: ",
@@ -213,7 +213,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.blue.shade50, Colors.purple.shade50],
+          colors: [Colors.blue.shade50, Colors.indigo.shade50],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -296,10 +296,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.pink.shade100),
+        border: Border.all(color: Colors.blue.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.pink.shade50,
+            color: Colors.blue.shade50,
             blurRadius: 6,
             offset: const Offset(0, 3),
           )
@@ -455,10 +455,10 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.pink.shade100),
+        border: Border.all(color: Colors.blue.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.pink.shade50,
+            color: Colors.blue.shade50,
             blurRadius: 6,
             offset: const Offset(0, 3),
           )
@@ -523,7 +523,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     "₦${(product.price * quantity).toStringAsFixed(2)}",
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.pink,
+                      color: Colors.blue,
                     ),
                   ),
                 ],

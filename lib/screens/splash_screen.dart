@@ -190,12 +190,12 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF4F4),
+      backgroundColor: const Color(0xFFE3F2FD),
       body: Container(
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
-          color: Color(0xFFFFF4F4),
+          color: Color(0xFFE3F2FD),
         ),
         child: SafeArea(
           child: Column(
@@ -217,7 +217,7 @@ class _SplashScreenState extends State<SplashScreen>
                         borderRadius: BorderRadius.circular(25),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.pink.shade100.withOpacity(0.5),
+                            color: Colors.blue.shade100.withOpacity(0.5),
                             blurRadius: 20,
                             offset: const Offset(0, 8),
                           ),
@@ -249,7 +249,7 @@ class _SplashScreenState extends State<SplashScreen>
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF444466),
+                          color: Color(0xFF1565C0),
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -260,17 +260,17 @@ class _SplashScreenState extends State<SplashScreen>
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.pinkAccent.withOpacity(0.1),
+                          color: Colors.blueAccent.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: Colors.pinkAccent.withOpacity(0.3),
+                            color: Colors.blueAccent.withOpacity(0.3),
                           ),
                         ),
                         child: const Text(
                           'Everything for your little one 💕',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Color(0xFF666688),
+                            color: Color(0xFF2196F3),
                             fontStyle: FontStyle.italic,
                           ),
                         ),
@@ -295,7 +295,7 @@ class _SplashScreenState extends State<SplashScreen>
                         borderRadius: BorderRadius.circular(15),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.pink.shade100.withOpacity(0.5),
+                            color: Colors.blue.shade100.withOpacity(0.5),
                             blurRadius: 10,
                             offset: const Offset(0, 5),
                           ),
@@ -304,7 +304,7 @@ class _SplashScreenState extends State<SplashScreen>
                       child: const Center(
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.pinkAccent,
+                            Colors.blueAccent,
                           ),
                           strokeWidth: 3,
                         ),
@@ -315,7 +315,7 @@ class _SplashScreenState extends State<SplashScreen>
                       'Loading your baby essentials...',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Color(0xFF888899),
+                        color: Color(0xFF5C6BC0),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -334,7 +334,7 @@ class _SplashScreenState extends State<SplashScreen>
                     'Made with 💖 for super parents',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF999AAA),
+                      color: Color(0xFF7986CB),
                     ),
                   ),
                 ),

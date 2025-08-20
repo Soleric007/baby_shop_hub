@@ -136,9 +136,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF4F4),
+      backgroundColor: const Color(0xFFE3F2FD),
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: Colors.blueAccent,
         title: const Text(
           'My Profile 👶',
           style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
@@ -158,7 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(color: Colors.pinkAccent),
+                  CircularProgressIndicator(color: Colors.blueAccent),
                   SizedBox(height: 16),
                   Text(
                     'Loading profile...',
@@ -199,7 +199,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 )
               : RefreshIndicator(
                   onRefresh: _loadUser,
-                  color: Colors.pinkAccent,
+                  color: Colors.blueAccent,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(20),
@@ -212,7 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               CircleAvatar(
                                 radius: 55,
-                                backgroundColor: Colors.pink[100],
+                                backgroundColor: Colors.blue[100],
                                 child: Text(
                                   user?['name']?.toString().substring(0, 1).toUpperCase() ?? '?',
                                   style: const TextStyle(
@@ -250,7 +250,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF444466),
+                              color: Color(0xFF1565C0),
                               fontFamily: 'Poppins',
                             ),
                           ),
@@ -263,7 +263,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF444466),
+                            color: Color(0xFF1565C0),
                           ),
                         ),
                         const SizedBox(height: 15),
@@ -290,7 +290,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                           icon: Icons.edit_rounded,
                           label: 'Edit Profile ✏️',
-                          color: Colors.pinkAccent,
+                          color: Colors.blueAccent,
                         ),
 
                         const SizedBox(height: 15),
@@ -298,8 +298,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _buildActionButton(
                           onPressed: _navigateToOrders,
                           icon: Icons.shopping_bag_rounded,
-                          label: 'My Orders 🛍️',
-                          color: Colors.deepPurpleAccent,
+                          label: 'My Orders 🛏️',
+                          color: Colors.indigo,
                         ),
 
                         const SizedBox(height: 15),
@@ -346,10 +346,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.pink.shade100),
+        border: Border.all(color: Colors.blue.shade100),
         boxShadow: [
           BoxShadow(
-            color: Colors.pink.shade50,
+            color: Colors.blue.shade50,
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -364,7 +364,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 fontSize: 16,
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w500,
-                color: Color(0xFF555577),
+                color: Color(0xFF1976D2),
               ),
             ),
           ),
@@ -375,7 +375,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontFamily: 'Poppins',
-                color: value == 'Not set' ? Colors.grey : const Color(0xFF333355),
+                color: value == 'Not set' ? Colors.grey : const Color(0xFF0D47A1),
                 fontWeight: value == 'Not set' ? FontWeight.normal : FontWeight.w500,
               ),
               textAlign: TextAlign.right,

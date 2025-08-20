@@ -104,9 +104,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final products = filteredProducts;
 
     return Scaffold(
-      backgroundColor: Colors.pink[50],
+      backgroundColor: Colors.blue[50],
       appBar: AppBar(
-        backgroundColor: Colors.pink[100],
+        backgroundColor: Colors.blue[100],
         title: const Text(
           'BabyShopHub 💕',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -136,7 +136,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(color: Colors.pinkAccent),
+                  CircularProgressIndicator(color: Colors.blueAccent),
                   SizedBox(height: 16),
                   Text('Loading products...'),
                 ],
@@ -157,7 +157,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     },
                     decoration: InputDecoration(
                       hintText: "Search baby items, brands, categories...",
-                      prefixIcon: const Icon(Icons.search, color: Colors.pink),
+                      prefixIcon: const Icon(Icons.search, color: Colors.blue),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear, color: Colors.grey),
@@ -178,7 +178,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(25),
-                        borderSide: const BorderSide(color: Colors.pink, width: 2),
+                        borderSide: const BorderSide(color: Colors.blue, width: 2),
                       ),
                     ),
                   ),
@@ -206,16 +206,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               _selectedCategory = category;
                             });
                           },
-                          selectedColor: Colors.pink[200],
+                          selectedColor: Colors.blue[200],
                           backgroundColor: Colors.white,
                           labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : Colors.pink[700],
+                            color: isSelected ? Colors.white : Colors.blue[700],
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                             side: BorderSide(
-                              color: isSelected ? Colors.pink : Colors.pink[200]!,
+                              color: isSelected ? Colors.blue : Colors.blue[200]!,
                             ),
                           ),
                         ),
@@ -251,7 +251,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.pink,
+                                color: Colors.blue,
                               ),
                             ),
                             TextButton(
@@ -293,7 +293,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           min: 0,
                           max: 100,
                           divisions: 20,
-                          activeColor: Colors.pink,
+                          activeColor: Colors.blue,
                           onChanged: (values) {
                             setState(() {
                               _minPrice = values.start;
@@ -315,7 +315,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     _inStockOnly = value!;
                                   });
                                 },
-                                activeColor: Colors.pink,
+                                activeColor: Colors.blue,
                                 contentPadding: EdgeInsets.zero,
                               ),
                             ),
@@ -332,7 +332,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           min: 0,
                           max: 5,
                           divisions: 5,
-                          activeColor: Colors.pink,
+                          activeColor: Colors.blue,
                           onChanged: (value) {
                             setState(() {
                               _minRating = value;
@@ -422,7 +422,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ElevatedButton(
             onPressed: _clearFilters,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.pink,
+              backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
             ),
             child: const Text('Clear Filters'),
@@ -531,7 +531,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
-                        color: Colors.pink,
+                        color: Colors.blue,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -609,7 +609,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           style: const TextStyle(fontSize: 10),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: product.inStock ? Colors.pinkAccent : Colors.grey,
+                          backgroundColor: product.inStock ? Colors.blueAccent : Colors.grey,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           shape: RoundedRectangleBorder(
